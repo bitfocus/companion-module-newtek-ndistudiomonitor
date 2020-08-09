@@ -1,0 +1,29 @@
+{
+	"name": "newtek-ndistudiomonitor",
+	"version": "1.0.0",
+	"api_version": "1.0.0",
+	"keywords": [
+		"Video",
+		"Software"
+	],
+	"manufacturer": "NewTek",
+	"product": "NDI Studio Monitor",
+	"shortname": "NDIMonitor",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/albertorighetto/companion-module-newtek-ndistudiomonitor.git"
+	},
+	"author": "Alberto Righetto",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/albertorighetto/companion-module-newtek-ndistudiomonitor/issues"
+	},
+	"homepage": "https://github.com/albertorighetto/companion-module-newtek-ndistudiomonitor#readme",
+	"dependencies": {
+		"utility": "1.16.3"
+	}
+}

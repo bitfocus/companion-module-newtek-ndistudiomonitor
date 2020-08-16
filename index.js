@@ -12,6 +12,70 @@ class instance extends instance_skel {
 	constructor(system, id, config) {
 		super(system, id, config)
 		var self = this;
+
+		// Keep track of authorization data
+		self.auth = {
+			passwordMandatory   : null,        // true if password is required by NDI Studio Monitor
+			wwwAuthenticate     : null,        // Store wwwAuthenticate headers
+			userpass            : null,        // Store web user:password for digest authentication
+			NC                  : 0            // Nonce for digest authentication
+		}
+
+		// keep track of data found during polling
+		self.pollResults = {
+			ndiSources: [],            // List of sources available in NDI Studio Monitor
+			activeSource: {
+				host    : null,        // Active "main" source hostname
+				name    : null,        // Active "main" source name
+				complete: null        // Active "main" source hostname and name
+			},
+			activeOverlay: {
+				host    : null,        // Active overlay source hostname
+				name    : null,        // Active overlay source name
+				complete: null        // Active overlay source hostname and name
+			},
+			overlayModePiP  : null,        // Overlay in PiP mode (true) or alpha mode (false)
+			recording       : null,        // true if recording
+			audioMute       : null        // true if audio is muted
+		}
+
+		self.waitingForResponse = false;    // Flag to keep track if we are waiting for a response to fire a callback inside connect() function
+		self.active             = false;    // Flag to keep track if instance is active or not (and ignore some callback processing if inactive)
+
+		// Keep track of setInterval and setTimeout
+		self.timers = {
+			pollSources         : null,        // ID of setInterval for source polling
+			pollConfiguration   : null,        // ID of setInterval for configuration polling
+			pollRecording       : null,        // ID of setInterval for recording polling
+			reconnectTimeout    : null        // ID of setTimeout for reconnection
+		}
+
+		// Store feedback colors in one place to be retrieved later for dynamic preset creation
+		self.feedbackColors = {
+			active_source: {
+				fg: self.rgb(255, 255, 255),
+				bg: self.rgb(255, 0, 0)
+			},
+			active_overlay: {
+				fg: self.rgb(0, 0, 0),
+				bg: self.rgb(255, 255, 0)
+			},
+			recording: {
+				fg: self.rgb(255, 255, 255),
+				bg: self.rgb(255, 0, 0)
+			},
+			audio_mute: {
+				fg: self.rgb(255, 255, 255),
+				bg: self.rgb(255, 0, 0)
+			}
+		};
+
+		// Store default button colors in one place to be retrieved later for dynamic preset creation
+		self.defaultColors = {
+			fg: self.rgb(255, 255, 255),
+			bg: self.rgb(0, 0, 0)
+		};
+		
 		Object.assign(self, {
 			...actions,
 			...presets,
@@ -659,71 +723,9 @@ class instance extends instance_skel {
 
 	init() {
 		var self = this;
+
 		debug = self.debug;
 		log = self.log;
-
-		// Keep track of authorization data
-		self.auth = {
-			passwordMandatory   : null,        // true if password is required by NDI Studio Monitor
-			wwwAuthenticate     : null,        // Store wwwAuthenticate headers
-			userpass            : null,        // Store web user:password for digest authentication
-			NC                  : 0            // Nonce for digest authentication
-		}
-
-		// keep track of data found during polling
-		self.pollResults = {
-			ndiSources: [],            // List of sources available in NDI Studio Monitor
-			activeSource: {
-				host    : null,        // Active "main" source hostname
-				name    : null,        // Active "main" source name
-				complete: null        // Active "main" source hostname and name
-			},
-			activeOverlay: {
-				host    : null,        // Active overlay source hostname
-				name    : null,        // Active overlay source name
-				complete: null        // Active overlay source hostname and name
-			},
-			overlayModePiP  : null,        // Overlay in PiP mode (true) or alpha mode (false)
-			recording       : null,        // true if recording
-			audioMute       : null        // true if audio is muted
-		}
-
-		self.waitingForResponse = false;    // Flag to keep track if we are waiting for a response to fire a callback inside connect() function
-		self.active             = false;    // Flag to keep track if instance is active or not (and ignore some callback processing if inactive)
-
-		// Keep track of setInterval and setTimeout
-		self.timers = {
-			pollSources         : null,        // ID of setInterval for source polling
-			pollConfiguration   : null,        // ID of setInterval for configuration polling
-			pollRecording       : null,        // ID of setInterval for recording polling
-			reconnectTimeout    : null        // ID of setTimeout for reconnection
-		}
-
-		// Store feedback colors in one place to be retrieved later for dynamic preset creation
-		self.feedbackColors = {
-			active_source: {
-				fg: self.rgb(255, 255, 255),
-				bg: self.rgb(255, 0, 0)
-			},
-			active_overlay: {
-				fg: self.rgb(0, 0, 0),
-				bg: self.rgb(255, 255, 0)
-			},
-			recording: {
-				fg: self.rgb(255, 255, 255),
-				bg: self.rgb(255, 0, 0)
-			},
-			audio_mute: {
-				fg: self.rgb(255, 255, 255),
-				bg: self.rgb(255, 0, 0)
-			}
-		};
-
-		// Store default button colors in one place to be retrieved later for dynamic preset creation
-		self.defaultColors = {
-			fg: self.rgb(255, 255, 255),
-			bg: self.rgb(0, 0, 0)
-		};
 
 		self.actions();
 		self.initVariables();

@@ -11,10 +11,9 @@ class instance extends instance_skel {
 
 	constructor(system, id, config) {
 		super(system, id, config)
-		var self = this;
 
 		// Keep track of authorization data
-		self.auth = {
+		this.auth = {
 			passwordMandatory   : null,        // true if password is required by NDI Studio Monitor
 			wwwAuthenticate     : null,        // Store wwwAuthenticate headers
 			userpass            : null,        // Store web user:password for digest authentication
@@ -22,7 +21,7 @@ class instance extends instance_skel {
 		}
 
 		// keep track of data found during polling
-		self.pollResults = {
+		this.pollResults = {
 			ndiSources: [],            // List of sources available in NDI Studio Monitor
 			activeSource: {
 				host    : null,        // Active "main" source hostname
@@ -39,11 +38,11 @@ class instance extends instance_skel {
 			audioMute       : null        // true if audio is muted
 		}
 
-		self.waitingForResponse = false;    // Flag to keep track if we are waiting for a response to fire a callback inside connect() function
-		self.active             = false;    // Flag to keep track if instance is active or not (and ignore some callback processing if inactive)
+		this.waitingForResponse = false;    // Flag to keep track if we are waiting for a response to fire a callback inside connect() function
+		this.active             = false;    // Flag to keep track if instance is active or not (and ignore some callback processing if inactive)
 
 		// Keep track of setInterval and setTimeout
-		self.timers = {
+		this.timers = {
 			pollSources         : null,        // ID of setInterval for source polling
 			pollConfiguration   : null,        // ID of setInterval for configuration polling
 			pollRecording       : null,        // ID of setInterval for recording polling
@@ -51,32 +50,32 @@ class instance extends instance_skel {
 		}
 
 		// Store feedback colors in one place to be retrieved later for dynamic preset creation
-		self.feedbackColors = {
+		this.feedbackColors = {
 			active_source: {
-				fg: self.rgb(255, 255, 255),
-				bg: self.rgb(255, 0, 0)
+				fg: this.rgb(255, 255, 255),
+				bg: this.rgb(255, 0, 0)
 			},
 			active_overlay: {
-				fg: self.rgb(0, 0, 0),
-				bg: self.rgb(255, 255, 0)
+				fg: this.rgb(0, 0, 0),
+				bg: this.rgb(255, 255, 0)
 			},
 			recording: {
-				fg: self.rgb(255, 255, 255),
-				bg: self.rgb(255, 0, 0)
+				fg: this.rgb(255, 255, 255),
+				bg: this.rgb(255, 0, 0)
 			},
 			audio_mute: {
-				fg: self.rgb(255, 255, 255),
-				bg: self.rgb(255, 0, 0)
+				fg: this.rgb(255, 255, 255),
+				bg: this.rgb(255, 0, 0)
 			}
 		};
 
 		// Store default button colors in one place to be retrieved later for dynamic preset creation
-		self.defaultColors = {
-			fg: self.rgb(255, 255, 255),
-			bg: self.rgb(0, 0, 0)
+		this.defaultColors = {
+			fg: this.rgb(255, 255, 255),
+			bg: this.rgb(0, 0, 0)
 		};
 		
-		Object.assign(self, {
+		Object.assign(this, {
 			...actions,
 			...presets,
 			...feedbacks
@@ -84,193 +83,185 @@ class instance extends instance_skel {
 	}
 
 	actions(system) {
-		var self = this;
-		self.setActions(self.getActions());
+		this.setActions(this.getActions());
 	}
 
 	// Check instance configuration
 	checkConfig() {
-		var self = this;
-		if (self.config.host !== undefined && self.config.port !== undefined && self.config.useWebPassword !== undefined && self.config.username !== undefined && self.config.password !== undefined) {
-			self.auth.userpass = self.config.username + ':' + self.config.password;
-			self.initConnection();
+		if (this.config.host !== undefined && this.config.port !== undefined && this.config.useWebPassword !== undefined && this.config.username !== undefined && this.config.password !== undefined) {
+			this.auth.userpass = this.config.username + ':' + this.config.password;
+			this.initConnection();
 		} else {
-			self.system.emit('log', 'NDI Studio Monitor', 'error', 'Failed applying instance settings, missing parameters');
-			self.status(self.STATUS_ERROR, 'Missing config parameters');
+			this.system.emit('log', 'NDI Studio Monitor', 'error', 'Failed applying instance settings, missing parameters');
+			this.status(this.STATUS_ERROR, 'Missing config parameters');
 		}
 	}
 
 	// Initiate the connection to NDI Studio Monitor
 	initConnection() {
-		var self = this;
-		if (!self.waitingForResponse) { // Prevent double firing of the connect() function
-			self.connect();
+		if (!this.waitingForResponse) { // Prevent double firing of the connect() function
+			this.connect();
 		}
 	}
 
 	// Try to connect againg
 	retryConnection() {
-		var self = this;
-		if (self.timers.reconnectTimeout) {
-			clearTimeout(self.timers.reconnectTimeout);
-			self.timers.reconnectTimeout = null;
+		if (this.timers.reconnectTimeout) {
+			clearTimeout(this.timers.reconnectTimeout);
+			this.timers.reconnectTimeout = null;
 		}
-		self.timers.reconnectTimeout = setTimeout(function(){ self.connect(); }.bind(self), 1000);
+		this.timers.reconnectTimeout = setTimeout(() => { this.connect() }, 1000);
 	}
 
 	// Do the real connection to NDI Studio Monitor
 	// NOTE: this is a bit complicated because NDI Studio Monitor could use (or not) digest-auth and is also returning an empty realm in wwwAuthenticate which is non-standard
 	connect() {
-		var self = this;
-		self.status(self.STATUS_WARNING, 'Connecting...');
+		this.status(this.STATUS_WARNING, 'Connecting...');
 
 		// Clear polling intervals because first we need a valid connection (maybe NDI Studio Monitor has been closed and initConnection() was fired after an error)
-		if (self.timers.pollSources) {
-			clearInterval(self.timers.pollSources);
-			self.timers.pollSources = null;
+		if (this.timers.pollSources) {
+			clearInterval(this.timers.pollSources);
+			this.timers.pollSources = null;
 		}
-		if (self.timers.pollConfiguration) {
-			clearInterval(self.timers.pollConfiguration);
-			self.timers.pollConfiguration = null;
+		if (this.timers.pollConfiguration) {
+			clearInterval(this.timers.pollConfiguration);
+			this.timers.pollConfiguration = null;
 		}
-		if (self.timers.pollRecording) {
-			clearInterval(self.timers.pollRecording);
-			self.timers.pollRecording = null;
+		if (this.timers.pollRecording) {
+			clearInterval(this.timers.pollRecording);
+			this.timers.pollRecording = null;
 		}
 		// This should never happen because retryConnection() is taking care of it. Leaving it here anyway
-		if(self.timers.reconnectTimeout) {
-			clearTimeout(self.timers.reconnectTimeout);
-			self.timers.reconnectTimeout = null;
+		if(this.timers.reconnectTimeout) {
+			clearTimeout(this.timers.reconnectTimeout);
+			this.timers.reconnectTimeout = null;
 		}
 
 		var path = '/';
-		var url = 'http://' + self.config.host + ':' + self.config.port + path;
+		var url = 'http://' + this.config.host + ':' + this.config.port + path;
 
 		// First request (without any extra header); if NDI Studio Monitor requires a web password we will get an HTTP 401 and store www-authenticate headers
-		self.waitingForResponse = true;
-		self.system.emit('rest_get', url, function (err, result) {
-			if(self.active) {        // Prevent response handling if instance have been disabled while waiting for a response
+		this.waitingForResponse = true;
+		this.system.emit('rest_get', url, (err, result) => {
+			if(this.active) {        // Prevent response handling if instance have been disabled while waiting for a response
 				if (err !== null) {     // Something bad happened, mainly an ECONNREFUSED if NDI Studio Monitor is not running or unreachable
-					self.status(self.STATUS_ERROR, result.error.code);
-					self.log('error', 'Connection failed (' + result.error.code + ')');
-					self.retryConnection();     // Keep trying to connect
+					this.status(this.STATUS_ERROR, result.error.code);
+					this.log('error', 'Connection failed (' + result.error.code + ')');
+					this.retryConnection();     // Keep trying to connect
 				}
 				else {
 					if(result.response.statusCode == 200) {     // NDI Studio Monitor is not requiring a web password
-						self.auth.passwordMandatory = false;
-						self.waitingForResponse = false;
+						this.auth.passwordMandatory = false;
+						this.waitingForResponse = false;
 						if(!isNDIStudioMonitorResponse(result.data)) {      // Check if the response if from NDI Studio Monitor
-							self.log('warn', 'Unespected response after connection');   // We can't be 100% sure so just put a warn in the log
+							this.log('warn', 'Unespected response after connection');   // We can't be 100% sure so just put a warn in the log
 						}
-						if(self.config.useWebPassword === true) {     // Not expected because self.config.useWebPassword is true, but everything should work anyway
-							self.status(self.STATUS_OK);    // Everything will work, no reason to raise a warning on the instance
-							self.log('warn', 'Web password is not required');    // Just notify the user that web password is being ignored
-							self.startPolling();     // Start to poll for sources, configuration and recording status
+						if(this.config.useWebPassword === true) {     // Not expected because this.config.useWebPassword is true, but everything should work anyway
+							this.status(this.STATUS_OK);    // Everything will work, no reason to raise a warning on the instance
+							this.log('warn', 'Web password is not required');    // Just notify the user that web password is being ignored
+							this.startPolling();     // Start to poll for sources, configuration and recording status
 						} else { // Everything is fine
-							self.status(self.STATUS_OK);
-							self.startPolling();     // Start to poll for sources, configuration and recording status
+							this.status(this.STATUS_OK);
+							this.startPolling();     // Start to poll for sources, configuration and recording status
 						}
 					} else if(result.response.statusCode == 401) {     // This is ok, NDI Studio Monitor may require a web password
-						self.auth.passwordMandatory = true;
-						if(self.config.useWebPassword === false) {     // We need to use the web password but in instance config "Use web password" is not checked
-							self.status(self.STATUS_ERROR, "Web password is required for login");
-							self.log('error', 'Web password is required for login');
-							self.waitingForResponse = false;
+						this.auth.passwordMandatory = true;
+						if(this.config.useWebPassword === false) {     // We need to use the web password but in instance config "Use web password" is not checked
+							this.status(this.STATUS_ERROR, "Web password is required for login");
+							this.log('error', 'Web password is required for login');
+							this.waitingForResponse = false;
 						} else {     // This is correct, we want to get 401 to get www-authenticate headers if using web password
-							self.status(self.STATUS_WARNING, "Logging in...");
-							self.auth.wwwAuthenticate = result.response.headers['www-authenticate']; // Store www-authenticate headers
+							this.status(this.STATUS_WARNING, "Logging in...");
+							this.auth.wwwAuthenticate = result.response.headers['www-authenticate']; // Store www-authenticate headers
 
 							// Second request, this time we add the "Authorization" header
-							self.system.emit('rest_get', url, function (err, result) {
-								if(self.active) {       // Prevent response handling if instance have been disabled while waiting for a response
+							this.system.emit('rest_get', url, (err, result) => {
+								if(this.active) {       // Prevent response handling if instance have been disabled while waiting for a response
 									if (err !== null) {     // Something really bad happened, mainly an ECONNREFUSED if NDI Studio Monitor has been closed or became unreachable after the first connection
-										self.status(self.STATUS_ERROR, result.error.code);
-										self.log('error', 'Connection failed (' + result.error.code + ')');
-										self.retryConnection();
+										this.status(this.STATUS_ERROR, result.error.code);
+										this.log('error', 'Connection failed (' + result.error.code + ')');
+										this.retryConnection();
 									}
 									else {
-										self.waitingForResponse = false;
+										this.waitingForResponse = false;
 										if(result.response.statusCode == 401) {     // Login failed, username and password are wrong
-											self.status(self.STATUS_ERROR, "Login failed, wrong username or password");
-											self.log('error', 'Login failed, wrong username or password');
+											this.status(this.STATUS_ERROR, "Login failed, wrong username or password");
+											this.log('error', 'Login failed, wrong username or password');
 										} else if(result.response.statusCode == 200) {     // Login success
-											self.status(self.STATUS_OK);
+											this.status(this.STATUS_OK);
 											if(!isNDIStudioMonitorResponse(result.data)) {      // Check if the response if from NDI Studio Monitor
-												self.log('warn', 'Unespected response after connection');   // We can't be 100% sure so just put a warn in the log
+												this.log('warn', 'Unespected response after connection');   // We can't be 100% sure so just put a warn in the log
 											}
-											self.startPolling();     // Start to poll for sources, configuration and recording status
+											this.startPolling();     // Start to poll for sources, configuration and recording status
 										} else {     // This is unespected
-											self.status(self.STATUS_ERROR, "Unespected HTTP status code: " + result.response.statusCode);
-											self.log('error', "Unespected HTTP status code: " + result.response.statusCode);
-											self.retryConnection();
+											this.status(this.STATUS_ERROR, "Unespected HTTP status code: " + result.response.statusCode);
+											this.log('error', "Unespected HTTP status code: " + result.response.statusCode);
+											this.retryConnection();
 										}
 									}
 								} else {     // Instance has been disabled, "fail" silently
-									self.waitingForResponse = false;
+									this.waitingForResponse = false;
 								}
 							}, {
 								// Extra headers for rest_get
-								Authorization: self.getDigestAuthHeader(result.response.req.method, result.response.req.path, self.auth.wwwAuthenticate, self.auth.userpass)
+								Authorization: this.getDigestAuthHeader(result.response.req.method, result.response.req.path, this.auth.wwwAuthenticate, this.auth.userpass)
 							});
 						}
 					} else {     // This is unespected
-						self.status(self.STATUS_ERROR, "Unespected HTTP status code: " + result.response.statusCode);
-						self.log('error', "Unespected HTTP status code: " + result.response.statusCode);
-						self.retryConnection();
+						this.status(this.STATUS_ERROR, "Unespected HTTP status code: " + result.response.statusCode);
+						this.log('error', "Unespected HTTP status code: " + result.response.statusCode);
+						this.retryConnection();
 					}
 				}
 			} else {     // Instance has been disabled, "fail" silently
-				self.waitingForResponse = false;
+				this.waitingForResponse = false;
 			}
 		});
 	}
 
 	// Poll for NDI Studio Monitor sources/configuration/recording
 	startPolling() {
-		var self = this;
-
 		// Do immediately the requests
-		self.getCurrentNDISources();
-		self.getCurrentConfiguration();
-		self.getCurrentRecordingStatus();
+		this.getCurrentNDISources();
+		this.getCurrentConfiguration();
+		this.getCurrentRecordingStatus();
 
 		// Repeat the requests at set intervals
-		self.timers.pollSources         = setInterval(self.getCurrentNDISources.bind(self), 5000);             // No need to poll aggressively
-		self.timers.pollConfiguration   = setInterval(self.getCurrentConfiguration.bind(self), 1000);        // This will be used mainly to get active sources
-		self.timers.pollRecording       = setInterval(self.getCurrentRecordingStatus.bind(self), 1000);        // Milliseconds will be discarded, no need to poll faster than 1 second
+		this.timers.pollSources         = setInterval(() => { this.getCurrentNDISources() }     , 5000);        // No need to poll aggressively
+		this.timers.pollConfiguration   = setInterval(() => { this.getCurrentConfiguration() }  , 1000);        // This will be used mainly to get active sources
+		this.timers.pollRecording       = setInterval(() => { this.getCurrentRecordingStatus() }, 1000);        // Milliseconds will be discarded, no need to poll faster than 1 second
 	}
 
 	// Get NDI sources available in NDI Studio Monitor
 	getCurrentNDISources() {
-		var self = this;
 		var path = '/v1/sources';
-		var url = 'http://' + self.config.host + ':' + self.config.port + path;
+		var url = 'http://' + this.config.host + ':' + this.config.port + path;
 
 		// If using web password we must set the appropriate Authorization header
 		var extraHeaders = {};
-		if(self.auth.passwordMandatory & self.config.useWebPassword) {
-			if(self.auth.wwwAuthenticate === null) {
-				self.initConnection();
+		if(this.auth.passwordMandatory & this.config.useWebPassword) {
+			if(this.auth.wwwAuthenticate === null) {
+				this.initConnection();
 				return;        // Can't go on with the function because first we need to get a valid connection; polling will resume after a successfull connection
 			} else {
-				extraHeaders.Authorization = self.getDigestAuthHeader('GET', path, self.auth.wwwAuthenticate, self.auth.userpass);
+				extraHeaders.Authorization = this.getDigestAuthHeader('GET', path, this.auth.wwwAuthenticate, this.auth.userpass);
 			}
 		}
 
 		// Send GET request to get a list of all sources (NDI, audio devices, screens, controllers...)
-		self.system.emit('rest_get', url, function (err, result) {
+		this.system.emit('rest_get', url, (err, result) => {
 			if (err !== null) {
-				self.initConnection();        // Something went wrong, check againg the connection
+				this.initConnection();        // Something went wrong, check againg the connection
 			}
 			else {
 				if(result.response.statusCode == 200) {
-					var newPresets = self.getPresets();        // Presets will be added to the basic ones
+					var newPresets = this.getPresets();        // Presets will be added to the basic ones
 
 					var sources = getSafe(() => result.data.ndi_sources);
 
 					// Store NDI sources
 					if(sources !== undefined) {
-						self.pollResults.ndiSources.length = 0;        // Wipe previous sources array
+						this.pollResults.ndiSources.length = 0;        // Wipe previous sources array
 
 						// First source must always be an empty one (this is how NDI Studio Monitor sets the source to "None")
 						// but is never listed in /v1/sources response so we are putting it back at the beginning of the response array.
@@ -287,7 +278,7 @@ class instance extends instance_skel {
 							}
 
 							// Add the source to the array that we will use to populate the drop-down options in the actions
-							self.pollResults.ndiSources.push({id: sourceName, label: displayedText});
+							this.pollResults.ndiSources.push({id: sourceName, label: displayedText});
 
 							// Create a new preset (with feedback) to set the source as the main one
 							newPresets.push({
@@ -297,16 +288,16 @@ class instance extends instance_skel {
 									style   : 'text',
 									text    : displayedText,
 									size    : 'auto',
-									color   : self.defaultColors.fg,
-									bgcolor : self.defaultColors.bg
+									color   : this.defaultColors.fg,
+									bgcolor : this.defaultColors.bg
 								},
 								feedbacks: [
 									{
 										type: 'active_source',
 										options: {
 											source  : sourceName,
-											fg      : self.feedbackColors.active_source.fg,
-											bg      : self.feedbackColors.active_source.bg
+											fg      : this.feedbackColors.active_source.fg,
+											bg      : this.feedbackColors.active_source.bg
 										}
 									}
 								],
@@ -326,16 +317,16 @@ class instance extends instance_skel {
 									style   : 'text',
 									text    : 'Over. PiP: ' + displayedText,
 									size    : 'auto',
-									color   : self.defaultColors.fg,
-									bgcolor : self.defaultColors.bg
+									color   : this.defaultColors.fg,
+									bgcolor : this.defaultColors.bg
 								},
 								feedbacks: [
 									{
 										type: 'active_overlay_pip',
 										options: {
 											source  : sourceName,
-											fg      : self.feedbackColors.active_overlay.fg,
-											bg      : self.feedbackColors.active_overlay.bg
+											fg      : this.feedbackColors.active_overlay.fg,
+											bg      : this.feedbackColors.active_overlay.bg
 										}
 									}
 								],
@@ -355,16 +346,16 @@ class instance extends instance_skel {
 									style   : 'text',
 									text    : 'Over. alpha: ' + displayedText,
 									size    : 'auto',
-									color   : self.defaultColors.fg,
-									bgcolor : self.defaultColors.bg
+									color   : this.defaultColors.fg,
+									bgcolor : this.defaultColors.bg
 								},
 								feedbacks: [
 									{
 										type: 'active_overlay_alpha',
 										options: {
 											source  : sourceName,
-											fg      : self.feedbackColors.active_overlay.fg,
-											bg      : self.feedbackColors.active_overlay.bg
+											fg      : this.feedbackColors.active_overlay.fg,
+											bg      : this.feedbackColors.active_overlay.bg
 										}
 									}
 								],
@@ -376,17 +367,17 @@ class instance extends instance_skel {
 								]
 							});
 						}
-						self.status(self.STATUS_OK);
+						this.status(this.STATUS_OK);
 					} else {
-						self.status(self.STATUS_WARNING, "Get NDI sources failed");
+						this.status(this.STATUS_WARNING, "Get NDI sources failed");
 					}
 
 					// Update presets, feedbacks and actions with new sources
-					self.setPresetDefinitions(newPresets);
-					self.setFeedbackDefinitions(self.getFeedbacks());
-					self.actions();
+					this.setPresetDefinitions(newPresets);
+					this.setFeedbackDefinitions(this.getFeedbacks());
+					this.actions();
 				} else {
-					self.initConnection(); // Something went wrong, check againg the connection
+					this.initConnection(); // Something went wrong, check againg the connection
 				}
 			}
 		}, extraHeaders);
@@ -394,25 +385,24 @@ class instance extends instance_skel {
 
 	// Get current configuration of NDI Studio Monitor
 	getCurrentConfiguration() {
-		var self = this;
 		var path = '/v1/configuration';
-		var url = 'http://' + self.config.host + ':' + self.config.port + path;
+		var url = 'http://' + this.config.host + ':' + this.config.port + path;
 
 		// If using web password we must set the appropriate Authorization header
 		var extraHeaders = {};
-		if(self.auth.passwordMandatory & self.config.useWebPassword) {
-			if(self.auth.wwwAuthenticate === null) {
-				self.initConnection();
+		if(this.auth.passwordMandatory & this.config.useWebPassword) {
+			if(this.auth.wwwAuthenticate === null) {
+				this.initConnection();
 				return; // Can't go on with the function because first we need to get a valid connection; polling will resume after a successfull connection
 			} else {
-				extraHeaders.Authorization = self.getDigestAuthHeader('GET', path, self.auth.wwwAuthenticate, self.auth.userpass);
+				extraHeaders.Authorization = this.getDigestAuthHeader('GET', path, this.auth.wwwAuthenticate, this.auth.userpass);
 			}
 		}
 
 		// Send GET request to get a list of all sources (NDI, audio devices, screens, controllers...)
-		self.system.emit('rest_get', url, function (err, result) {
+		this.system.emit('rest_get', url, (err, result) => {
 			if (err !== null) {
-				self.initConnection();        // Something went wrong, check againg the connection
+				this.initConnection();        // Something went wrong, check againg the connection
 			}
 			else {
 				if(result.response.statusCode == 200) {
@@ -421,22 +411,22 @@ class instance extends instance_skel {
 						var currActiveSource = getSafe(() => result.data.NDI_source);
 						if(currActiveSource !== undefined) {
 							if(currActiveSource === '') {
-								self.setVariable('activeSourceComplete', 'None');
-								self.setVariable('activeSourceHost', 'None');
-								self.setVariable('activeSourceName', 'None');
-								self.pollResults.activeSource.complete = '';
-								self.pollResults.activeSource.host = '';
-								self.pollResults.activeSource.name = '';
+								this.setVariable('activeSourceComplete', 'None');
+								this.setVariable('activeSourceHost', 'None');
+								this.setVariable('activeSourceName', 'None');
+								this.pollResults.activeSource.complete = '';
+								this.pollResults.activeSource.host = '';
+								this.pollResults.activeSource.name = '';
 							} else {
-								self.setVariable('activeSourceComplete', currActiveSource);
-								self.setVariable('activeSourceHost', getHost(currActiveSource));
-								self.setVariable('activeSourceName', getName(currActiveSource));
-								self.pollResults.activeSource.complete  = currActiveSource;
-								self.pollResults.activeSource.host      = getHost(currActiveSource);
-								self.pollResults.activeSource.name      = getName(currActiveSource);
+								this.setVariable('activeSourceComplete', currActiveSource);
+								this.setVariable('activeSourceHost', getHost(currActiveSource));
+								this.setVariable('activeSourceName', getName(currActiveSource));
+								this.pollResults.activeSource.complete  = currActiveSource;
+								this.pollResults.activeSource.host      = getHost(currActiveSource);
+								this.pollResults.activeSource.name      = getName(currActiveSource);
 							}
 						}
-						self.checkFeedbacks('active_source');
+						this.checkFeedbacks('active_source');
 
 						// Update current active PiP source variable and feedback
 						var currActiveOverlay = getSafe(() => result.data.NDI_overlay);
@@ -444,38 +434,38 @@ class instance extends instance_skel {
 						var currAudioMute = getSafe(() => result.data.decorations.mute_audio);
 						if(currActiveOverlay !== undefined) {
 							if(currActiveOverlay === '') {
-								self.setVariable('activeOverlayComplete', 'None');
-								self.setVariable('activeOverlayHost', 'None');
-								self.setVariable('activeOverlayName', 'None');
-								self.pollResults.activeOverlay.complete = '';
-								self.pollResults.activeOverlay.host     = '';
-								self.pollResults.activeOverlay.name     = '';
+								this.setVariable('activeOverlayComplete', 'None');
+								this.setVariable('activeOverlayHost', 'None');
+								this.setVariable('activeOverlayName', 'None');
+								this.pollResults.activeOverlay.complete = '';
+								this.pollResults.activeOverlay.host     = '';
+								this.pollResults.activeOverlay.name     = '';
 							} else {
-								self.setVariable('activeOverlayComplete', currActiveOverlay);
-								self.setVariable('activeOverlayHost', getHost(currActiveOverlay));
-								self.setVariable('activeOverlayName', getName(currActiveOverlay));
-								self.pollResults.activeOverlay.complete = currActiveOverlay;
-								self.pollResults.activeOverlay.host     = getHost(currActiveOverlay);
-								self.pollResults.activeOverlay.name     = getName(currActiveOverlay);
+								this.setVariable('activeOverlayComplete', currActiveOverlay);
+								this.setVariable('activeOverlayHost', getHost(currActiveOverlay));
+								this.setVariable('activeOverlayName', getName(currActiveOverlay));
+								this.pollResults.activeOverlay.complete = currActiveOverlay;
+								this.pollResults.activeOverlay.host     = getHost(currActiveOverlay);
+								this.pollResults.activeOverlay.name     = getName(currActiveOverlay);
 							}
 						}
 						if(currOverlayModePiP !== undefined) {
-							self.pollResults.overlayModePiP = currOverlayModePiP;
+							this.pollResults.overlayModePiP = currOverlayModePiP;
 						}
 						if(currAudioMute !== undefined) {
-							self.pollResults.audioMute = currAudioMute;
+							this.pollResults.audioMute = currAudioMute;
 						}
-						self.checkFeedbacks('active_overlay');
-						self.checkFeedbacks('active_overlay_pip');
-						self.checkFeedbacks('active_overlay_alpha');
-						self.checkFeedbacks('audio_mute');
+						this.checkFeedbacks('active_overlay');
+						this.checkFeedbacks('active_overlay_pip');
+						this.checkFeedbacks('active_overlay_alpha');
+						this.checkFeedbacks('audio_mute');
 
-						self.status(self.STATUS_OK);
+						this.status(this.STATUS_OK);
 					} else {
-						self.status(self.STATUS_WARNING, "Get configuration failed");
+						this.status(this.STATUS_WARNING, "Get configuration failed");
 					}
 				} else {
-					self.initConnection(); // Something went wrong, check againg the connection
+					this.initConnection(); // Something went wrong, check againg the connection
 				}
 			}
 		}, extraHeaders);
@@ -483,25 +473,24 @@ class instance extends instance_skel {
 
 	// Get current recording status of NDI Studio Monitor
 	getCurrentRecordingStatus() {
-		var self = this;
 		var path = '/v1/recording';
-		var url = 'http://' + self.config.host + ':' + self.config.port + path;
+		var url = 'http://' + this.config.host + ':' + this.config.port + path;
 
 		// If using web password we must set the appropriate Authorization header
 		var extraHeaders = {}
-		if(self.auth.passwordMandatory & self.config.useWebPassword) {
-			if(self.auth.wwwAuthenticate === null) {
-				self.initConnection();
+		if(this.auth.passwordMandatory & this.config.useWebPassword) {
+			if(this.auth.wwwAuthenticate === null) {
+				this.initConnection();
 				return; // Can't go on with the function because first we need to get a valid connection; polling will resume after a successfull connection
 			} else {
-				extraHeaders.Authorization = self.getDigestAuthHeader('GET', path, self.auth.wwwAuthenticate, self.auth.userpass);
+				extraHeaders.Authorization = this.getDigestAuthHeader('GET', path, this.auth.wwwAuthenticate, this.auth.userpass);
 			}
 		}
 
 		// Send GET request to get a list of all sources (NDI, audio devices, screens, controllers...)
-		self.system.emit('rest_get', url, function (err, result) {
+		this.system.emit('rest_get', url, (err, result) => {
 			if (err !== null) {
-				self.initConnection(); // Something went wrong, check againg the connection
+				this.initConnection(); // Something went wrong, check againg the connection
 			}
 			else {
 				if(result.response.statusCode == 200) {
@@ -510,27 +499,27 @@ class instance extends instance_skel {
 						// Update recording status and feedback
 						var currRecording = getSafe(() => result.data.recording);
 						if(currRecording !== undefined) {
-							self.setVariable('recording', currRecording);
-							self.pollResults.recording = currRecording;
+							this.setVariable('recording', currRecording);
+							this.pollResults.recording = currRecording;
 						}
-						self.checkFeedbacks('recording');
+						this.checkFeedbacks('recording');
 
 						// Update recording time
 						var recDuration = getSafe(() => result.data.duration);
 						if(recDuration !== undefined) {
 							var time = parseInt(recDuration);
-							self.setVariable('recordingTimeS', time);
+							this.setVariable('recordingTimeS', time);
 							var minutes = Math.floor(time / 60);
 							var seconds = time - minutes * 60;
-							self.setVariable('recordingTimeMS', str_pad_left(minutes, '0', 2) + ':' + str_pad_left(seconds, '0', 2));
+							this.setVariable('recordingTimeMS', str_pad_left(minutes, '0', 2) + ':' + str_pad_left(seconds, '0', 2));
 						}
 
-						self.status(self.STATUS_OK);
+						this.status(this.STATUS_OK);
 					} else {
-						self.status(self.STATUS_WARNING, "Get recording status failed");
+						this.status(this.STATUS_WARNING, "Get recording status failed");
 					}
 				} else {
-					self.initConnection(); // Something went wrong, check againg the connection
+					this.initConnection(); // Something went wrong, check againg the connection
 				}
 			}
 		}, extraHeaders);
@@ -538,7 +527,6 @@ class instance extends instance_skel {
 
 	// Instance configuration
 	config_fields() {
-		var self = this;
 		return [
 			{
 				type    : 'text',
@@ -553,7 +541,7 @@ class instance extends instance_skel {
 				label   : 'Host or IP:',
 				width   : 12,
 				default : '',
-				regex   : self.REGEX_SOMETHING
+				regex   : this.REGEX_SOMETHING
 			},
 			{
 				type    : 'number',
@@ -563,7 +551,7 @@ class instance extends instance_skel {
 				default : '80',
 				min     : 1,
 				max     : 65535,
-				regex   : self.REGEX_PORT
+				regex   : this.REGEX_PORT
 			},
 			{
 				type    : 'checkbox',
@@ -591,7 +579,6 @@ class instance extends instance_skel {
 
 	// Instance actions
 	action(action) {
-		var self    = this;
 		let id      = action.action;
 		let opt     = action.options;
 		let NDIobj  = {};
@@ -652,13 +639,12 @@ class instance extends instance_skel {
 				break;
 		}
 
-		self.sendCommand(NDIobj, page);
+		this.sendCommand(NDIobj, page);
 	}
 
 	sendCommand(NDIobj, page) {
-		var self = this;
 		var path = '/v1/' + page; //page could be one of: reconding configuration sources
-		var url = 'http://' + self.config.host + ':' + self.config.port + path;
+		var url = 'http://' + this.config.host + ':' + this.config.port + path;
 		if(page == 'configuration' && NDIobj.version === undefined) {
 			NDIobj.version = 1;
 		}
@@ -668,85 +654,79 @@ class instance extends instance_skel {
 
 		// If using web password we must set the appropriate Authorization header
 		var extraHeaders = {}
-		if(self.auth.passwordMandatory & self.config.useWebPassword) {
-			if(self.auth.wwwAuthenticate === null) {
-				self.initConnection();
+		if(this.auth.passwordMandatory & this.config.useWebPassword) {
+			if(this.auth.wwwAuthenticate === null) {
+				this.initConnection();
 				// TODO: action will fail with HTTP 401 because extraHeaders are not ready
 			} else {
-				extraHeaders.Authorization = self.getDigestAuthHeader('POST', path, self.auth.wwwAuthenticate, self.auth.userpass);
+				extraHeaders.Authorization = this.getDigestAuthHeader('POST', path, this.auth.wwwAuthenticate, this.auth.userpass);
 			}
 		}
 
 		// Send POST request
-		self.system.emit('rest', url, data, function (err, result) {
+		this.system.emit('rest', url, data, (err, result) => {
 			if (err !== null) {
-				self.initConnection(); // Something went wrong, check againg the instance connection
+				this.initConnection(); // Something went wrong, check againg the instance connection
 			}
 			else {
 				if(result.response.statusCode == 200) {
 					if(String(result.data).trim() != 'Configuration updated.') {
 						// This should never happen if a correct JSON syntax has been sent (indipendently from the content)
-						self.log('warn', 'Unespected response');    // Rise a warning in the log but keep going on
+						this.log('warn', 'Unespected response');    // Rise a warning in the log but keep going on
 					}
 				} else {
-					self.initConnection(); // Something went wrong, check againg the instance connection
+					this.initConnection(); // Something went wrong, check againg the instance connection
 				}
 			}
 		}, extraHeaders);
 	}
 
 	destroy() {
-		var self = this;
-
 		// Clear polling timers
-		if (self.timers.pollSources) {
-			clearInterval(self.timers.pollSources);
-			self.timers.pollSources = null;
+		if (this.timers.pollSources) {
+			clearInterval(this.timers.pollSources);
+			this.timers.pollSources = null;
 		}
-		if (self.timers.pollConfiguration) {
-			clearInterval(self.timers.pollConfiguration);
-			self.timers.pollConfiguration = null;
+		if (this.timers.pollConfiguration) {
+			clearInterval(this.timers.pollConfiguration);
+			this.timers.pollConfiguration = null;
 		}
-		if (self.timers.pollRecording) {
-			clearInterval(self.timers.pollRecording);
-			self.timers.pollRecording = null;
+		if (this.timers.pollRecording) {
+			clearInterval(this.timers.pollRecording);
+			this.timers.pollRecording = null;
 		}
 
 		// Clear reconnection timeout
-		if(self.timers.reconnectTimeout) {
-			clearTimeout(self.timers.reconnectTimeout);
-			self.timers.reconnectTimeout = null;
+		if(this.timers.reconnectTimeout) {
+			clearTimeout(this.timers.reconnectTimeout);
+			this.timers.reconnectTimeout = null;
 		}
 
-		self.active = false;
+		this.active = false;
 	}
 
 	init() {
-		var self = this;
+		debug = this.debug;
+		log = this.log;
 
-		debug = self.debug;
-		log = self.log;
-
-		self.actions();
-		self.initVariables();
-		self.initFeedbacks();
-		self.initPresets();
-		self.active = true;
-		self.checkConfig();
+		this.actions();
+		this.initVariables();
+		this.initFeedbacks();
+		this.initPresets();
+		this.active = true;
+		this.checkConfig();
 	}
 
 	updateConfig(config) {
-		var self = this;
-		self.config = config;
-		self.actions();
-		self.initVariables();
-		self.initFeedbacks();
-		self.initPresets();
-		self.checkConfig();
+		this.config = config;
+		this.actions();
+		this.initVariables();
+		this.initFeedbacks();
+		this.initPresets();
+		this.checkConfig();
 	}
 
 	initVariables() {
-		var self = this;
 		var variables = [
 			{ name: 'activeSourceComplete',     label: 'Active source complete name' },
 			{ name: 'activeSourceHost',         label: 'Active source hostname' },
@@ -760,17 +740,15 @@ class instance extends instance_skel {
 			{ name: 'recordingTimeS',           label: 'Recording time in seconds' },
 			{ name: 'recordingTimeMS',          label: 'Recording time in minutes:seconds' }
 		]
-		self.setVariableDefinitions(variables)
+		this.setVariableDefinitions(variables)
 	}
 
 	initFeedbacks() {
-		var self = this;
-		self.setFeedbackDefinitions(self.getFeedbacks());
+		this.setFeedbackDefinitions(this.getFeedbacks());
 	}
 
-	initPresets(updates) {
-		var self = this;
-		self.setPresetDefinitions(self.getPresets());
+	initPresets() {
+		this.setPresetDefinitions(this.getPresets());
 	}
 
 	/**
@@ -778,7 +756,6 @@ class instance extends instance_skel {
 	 * to allow for realm="" (empty realm string) which NDI Studio Monitor is returning
 	 */
 	getDigestAuthHeader(method, uri, wwwAuthenticate, userpass) {
-		var self = this;
 		var AUTH_KEY_VALUE_RE = /(\w+)=["']?([^'"]*)["']?/;
 		var NC_PAD = '00000000';
 		var parts = wwwAuthenticate.split(',');
@@ -798,7 +775,7 @@ class instance extends instance_skel {
 
 		userpass = userpass.split(':');
 
-		var nc = String(++self.auth.NC);
+		var nc = String(++this.auth.NC);
 		nc = NC_PAD.substring(nc.length) + nc;
 		var cnonce = crypto.randomBytes(8).toString('hex');
 

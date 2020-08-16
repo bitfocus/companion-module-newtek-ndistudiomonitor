@@ -1,7 +1,5 @@
 module.exports = {
-
 	getFeedbacks() {
-		var self = this;
 		var feedbacks = {};
 
 		feedbacks['active_source'] = {
@@ -12,7 +10,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
-					choices : self.pollResults.ndiSources,
+					choices : this.pollResults.ndiSources,
 					default : ''
 
 				},
@@ -20,18 +18,18 @@ module.exports = {
 					type    : 'colorpicker',
 					label   : 'Foreground color',
 					id      : 'fg',
-					default : self.feedbackColors.active_source.fg
+					default : this.feedbackColors.active_source.fg
 
 				},
 				{
 					type    : 'colorpicker',
 					label   : 'Background color',
 					id      : 'bg',
-					default : self.feedbackColors.active_source.bg
+					default : this.feedbackColors.active_source.bg
 				}
 			],
 			callback: (feedback, bank) => {
-				if (self.pollResults.activeSource.complete === feedback.options.source) {
+				if (this.pollResults.activeSource.complete === feedback.options.source) {
 					return {
 						color   : feedback.options.fg,
 						bgcolor : feedback.options.bg
@@ -49,7 +47,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
-					choices : self.pollResults.ndiSources,
+					choices : this.pollResults.ndiSources,
 					default : ''
 
 				},
@@ -57,18 +55,18 @@ module.exports = {
 					type    : 'colorpicker',
 					label   : 'Foreground color',
 					id      : 'fg',
-					default : self.feedbackColors.active_overlay.fg
+					default : this.feedbackColors.active_overlay.fg
 
 				},
 				{
 					type    : 'colorpicker',
 					label   : 'Background color',
 					id      : 'bg',
-					default : self.feedbackColors.active_overlay.bg
+					default : this.feedbackColors.active_overlay.bg
 				}
 			],
 			callback: (feedback, bank) => {
-				if(self.pollResults.activeOverlay.complete === feedback.options.source) {
+				if(this.pollResults.activeOverlay.complete === feedback.options.source) {
 					return {
 						color   : feedback.options.fg,
 						bgcolor : feedback.options.bg
@@ -85,7 +83,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
-					choices : self.pollResults.ndiSources,
+					choices : this.pollResults.ndiSources,
 					default : ''
 
 				},
@@ -93,18 +91,18 @@ module.exports = {
 					type    : 'colorpicker',
 					label   : 'Foreground color',
 					id      : 'fg',
-					default : self.feedbackColors.active_overlay.fg
+					default : this.feedbackColors.active_overlay.fg
 
 				},
 				{
 					type    : 'colorpicker',
 					label   : 'Background color',
 					id      : 'bg',
-					default : self.feedbackColors.active_overlay.bg
+					default : this.feedbackColors.active_overlay.bg
 				}
 			],
 			callback: (feedback, bank) => {
-				if (self.pollResults.activeOverlay.complete === feedback.options.source && self.pollResults.overlayModePiP === true) {
+				if (this.pollResults.activeOverlay.complete === feedback.options.source && this.pollResults.overlayModePiP === true) {
 					return {
 						color   : feedback.options.fg,
 						bgcolor : feedback.options.bg
@@ -121,7 +119,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
-					choices : self.pollResults.ndiSources,
+					choices : this.pollResults.ndiSources,
 					default : ''
 
 				},
@@ -129,18 +127,18 @@ module.exports = {
 					type    : 'colorpicker',
 					label   : 'Foreground color',
 					id      : 'fg',
-					default : self.feedbackColors.active_overlay.fg
+					default : this.feedbackColors.active_overlay.fg
 
 				},
 				{
 					type    : 'colorpicker',
 					label   : 'Background color',
 					id      : 'bg',
-					default : self.feedbackColors.active_overlay.bg
+					default : this.feedbackColors.active_overlay.bg
 				}
 			],
 			callback: (feedback, bank) => {
-				if (self.pollResults.activeOverlay.complete === feedback.options.source && self.pollResults.overlayModePiP === false) {
+				if (this.pollResults.activeOverlay.complete === feedback.options.source && this.pollResults.overlayModePiP === false) {
 					return {
 						color   : feedback.options.fg,
 						bgcolor : feedback.options.bg
@@ -157,18 +155,18 @@ module.exports = {
 					type    : 'colorpicker',
 					label   : 'Foreground color',
 					id      : 'fg',
-					default : self.feedbackColors.recording.fg
+					default : this.feedbackColors.recording.fg
 
 				},
 				{
 					type    : 'colorpicker',
 					label   : 'Background color',
 					id      : 'bg',
-					default : self.feedbackColors.recording.bg
+					default : this.feedbackColors.recording.bg
 				}
 			],
 			callback: (feedback, bank) => {
-				if (self.pollResults.recording === true) {
+				if (this.pollResults.recording === true) {
 					return {
 						color   : feedback.options.fg,
 						bgcolor : feedback.options.bg
@@ -185,18 +183,18 @@ module.exports = {
 					type    : 'colorpicker',
 					label   : 'Foreground color',
 					id      : 'fg',
-					default : self.feedbackColors.audio_mute.bg
+					default : this.feedbackColors.audio_mute.bg
 
 				},
 				{
 					type    : 'colorpicker',
 					label   : 'Background color',
 					id      : 'bg',
-					default : self.feedbackColors.audio_mute.bg
+					default : this.feedbackColors.audio_mute.bg
 				}
 			],
 			callback: (feedback, bank) => {
-				if (self.pollResults.audioMute === true) {
+				if (this.pollResults.audioMute === true) {
 					return {
 						color   : feedback.options.fg,
 						bgcolor : feedback.options.bg

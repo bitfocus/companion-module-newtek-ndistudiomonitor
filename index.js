@@ -533,7 +533,7 @@ class instance extends instance_skel {
 				id      : 'info',
 				width   : 12,
 				label   : 'Information',
-				value   : '<b>Control for NDI Studio Monitor version > 4.<br/>For info and tips about password and how this module works (actions, feedbacks, variables, presets, custom JSON) please see the help section of the module</b>'
+				value   : '<b>Control for NDI Studio Monitor version > 4.<br/>For info and tips about password and how this module works please see the help section of the module</b>'
 			},
 			{
 				type    : 'textinput',

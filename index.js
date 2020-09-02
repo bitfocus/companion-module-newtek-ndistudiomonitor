@@ -110,7 +110,7 @@ class instance extends instance_skel {
 			clearTimeout(this.timers.reconnectTimeout);
 			this.timers.reconnectTimeout = null;
 		}
-		this.timers.reconnectTimeout = setTimeout(() => { this.connect() }, 1000);
+		this.timers.reconnectTimeout = setTimeout(this.connect.bind(this), 1000);
 	}
 
 	// Do the real connection to NDI Studio Monitor
@@ -227,9 +227,9 @@ class instance extends instance_skel {
 		this.getCurrentRecordingStatus();
 
 		// Repeat the requests at set intervals
-		this.timers.pollSources         = setInterval(() => { this.getCurrentNDISources() }     , 5000);        // No need to poll aggressively
-		this.timers.pollConfiguration   = setInterval(() => { this.getCurrentConfiguration() }  , 1000);        // This will be used mainly to get active sources
-		this.timers.pollRecording       = setInterval(() => { this.getCurrentRecordingStatus() }, 1000);        // Milliseconds will be discarded, no need to poll faster than 1 second
+		this.timers.pollSources         = setInterval(this.getCurrentNDISources.bind(this)     , 5000);        // No need to poll aggressively
+		this.timers.pollConfiguration   = setInterval(this.getCurrentConfiguration.bind(this)  , 1000);        // This will be used mainly to get active sources
+		this.timers.pollRecording       = setInterval(this.getCurrentRecordingStatus.bind(this), 1000);        // Milliseconds will be discarded, no need to poll faster than 1 second
 	}
 
 	// Get NDI sources available in NDI Studio Monitor

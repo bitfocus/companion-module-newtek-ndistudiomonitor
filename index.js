@@ -11,6 +11,13 @@ class instance extends instance_skel {
 
 	constructor(system, id, config) {
 		super(system, id, config)
+		
+		// Default values
+		this.config.host = this.config.host || '127.0.0.1';
+		this.config.port = this.config.port || 80;
+		this.config.useWebPassword = this.config.useWebPassword || true;
+		this.config.username = this.config.username || 'admin';
+		this.config.password = this.config.password || 'admin';
 
 		// Keep track of authorization data
 		this.auth = {
@@ -22,20 +29,22 @@ class instance extends instance_skel {
 
 		// keep track of data found during polling
 		this.pollResults = {
-			ndiSources: [],            // List of sources available in NDI Studio Monitor
+			ndiSources: [],          // List of sources available in NDI Studio Monitor
+			oldNdiSources: [],       // Previously detected available sources
+			
 			activeSource: {
 				host    : null,        // Active "main" source hostname
 				name    : null,        // Active "main" source name
-				complete: null        // Active "main" source hostname and name
+				complete: null         // Active "main" source hostname and name
 			},
 			activeOverlay: {
 				host    : null,        // Active overlay source hostname
 				name    : null,        // Active overlay source name
-				complete: null        // Active overlay source hostname and name
+				complete: null         // Active overlay source hostname and name
 			},
 			overlayModePiP  : null,        // Overlay in PiP mode (true) or alpha mode (false)
 			recording       : null,        // true if recording
-			audioMute       : null        // true if audio is muted
+			audioMute       : null         // true if audio is muted
 		}
 
 		this.waitingForResponse = false;    // Flag to keep track if we are waiting for a response to fire a callback inside connect() function
@@ -46,7 +55,7 @@ class instance extends instance_skel {
 			pollSources         : null,        // ID of setInterval for source polling
 			pollConfiguration   : null,        // ID of setInterval for configuration polling
 			pollRecording       : null,        // ID of setInterval for recording polling
-			reconnectTimeout    : null        // ID of setTimeout for reconnection
+			reconnectTimeout    : null         // ID of setTimeout for reconnection
 		}
 
 		// Store feedback colors in one place to be retrieved later for dynamic preset creation
@@ -373,9 +382,12 @@ class instance extends instance_skel {
 					}
 
 					// Update presets, feedbacks and actions with new sources
-					this.setPresetDefinitions(newPresets);
-					this.setFeedbackDefinitions(this.getFeedbacks());
-					this.actions();
+					if(JSON.stringify(this.pollResults.ndiSources) !== JSON.stringify(this.pollResults.oldNdiSources)) {
+						this.setPresetDefinitions(newPresets);
+						this.setFeedbackDefinitions(this.getFeedbacks());
+						this.actions();
+						this.pollResults.oldNdiSources = JSON.parse(JSON.stringify(this.pollResults.ndiSources));
+					}
 				} else {
 					this.initConnection(); // Something went wrong, check againg the connection
 				}
@@ -540,7 +552,7 @@ class instance extends instance_skel {
 				id      : 'host',
 				label   : 'Host or IP:',
 				width   : 12,
-				default : '',
+				default : '127.0.0.1',
 				regex   : this.REGEX_SOMETHING
 			},
 			{

@@ -58,13 +58,15 @@ Examples:
 * **{"window":{"display_device":""}}** set NDI Studio Monitor as a window
 * **{"window":{"display_device":"Full Screen"}}** set NDI Studio Monitor in full screen mode (works only if only one desktop is available)
 * **{"window":{"display_device":"Monitor 1"}}** or "Monitor 2" etc. set NDI Studio Monitor to full screen on the first desktop (works only if multiple extended desktops are available)
+* **{"record_path":"C:\\Users\\User\\Videos"}** set recording folder (double backslash is mandatory)
+* **{"PTZ_controller":""}** set the PTZ joystick to be used
 * **{"window":{"display_device":"All Monitors"}}** set NDI Studio Monitor to full screen mode across all desktops (works only if multiple extended desktops are available)
 * **{"decorations":{"best_fit":true}}** scale the NDI source to fit the window size (set to false to disable source scaling)
 * **{"audio_output":"Speakers (Realtek High Definition Audio)"}** changes audio output device to the specified one (device name is the same as in Windows settings)
 * **{"decorations":{"audio_gain":-20}}** set audio gain to +0dB (SMPTE level); note that -14 = +6dB (EBU level) and so on
 * **{"decorations":{"enable_ndi_output":true}}** enable NDI output from NDI Studio Monitor
 * **{"decorations":{"checkerboard":true}}** display a checkboard instead of black for the alpha channel
-* **{"decorations":{"show_alpha":true}}** display a grayscale image of the alpha channel 
+* **{"decorations":{"show_alpha":true}}** display a grayscale image of the alpha channel
 * **{"decorations":{"tally":true}}** enable tally
 * **{"decorations":{"vu_meter":true}}** enable VU meter overlay
 * **{"decorations":{"vu_meter_scale":true}}** enable VU meter labels
@@ -72,10 +74,11 @@ Examples:
 * **{"decorations":{"safe_areas":true}}** enable safe areas overlay
 * **{"decorations":{"show_4_3":true}}** enable 4:3 aspect overlay
 * **{"decorations":{"square_aspect":true}}** enable square aspect overlay
+* **{"decorations":{"hide_ptz_controls":false}}** display PTZ controls overlay
 * **{"decorations":{"show_web_address":true}}** show web address on next lauch of NDI studio
 * **{"decorations":{"do_not_hide_controls":true}}** force control overlays to be always on
-* **{"decorations":{"flip_horizontal":true}}** flip the displayed source horizontally 
-* **{"decorations":{"flip_vertical":true}}**  flip the displayed source vertically 
+* **{"decorations":{"flip_horizontal":true}}** flip the displayed source horizontally
+* **{"decorations":{"flip_vertical":true}}**  flip the displayed source vertically
 * **{"decorations":{"lowest_latency":true}}** enable low latency mode
 * **{"decorations":{"hw_accel":true}}** enable hardware acceleration
 * **{"decorations":{"low_bandwidth":true}}** enable low bandwidth mode
@@ -86,4 +89,4 @@ Examples:
  * 1 = normal (windowed)
  * 2 = minimized
  * 3 = maximized
- * other values (4 to 9) are documented at https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-windowplacement
+ * other values are documented at https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow

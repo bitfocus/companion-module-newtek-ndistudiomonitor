@@ -15,14 +15,14 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/albertorighetto/companion-module-newtek-ndistudiomonitor.git"
+		"url": "git+https://github.com/bitfocus/companion-module-newtek-ndistudiomonitor.git"
 	},
 	"author": "Alberto Righetto",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/albertorighetto/companion-module-newtek-ndistudiomonitor/issues"
+		"url": "https://github.com/bitfocus/companion-module-newtek-ndistudiomonitor/issues"
 	},
-	"homepage": "https://github.com/albertorighetto/companion-module-newtek-ndistudiomonitor#readme",
+	"homepage": "https://github.com/bitfocus/companion-module-newtek-ndistudiomonitor#readme",
 	"dependencies": {
 		"utility": "1.16.3"
 	}

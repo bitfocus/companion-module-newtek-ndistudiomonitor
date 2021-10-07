@@ -9,6 +9,7 @@ module.exports = {
 						type    : 'dropdown',
 						label   : 'Video source',
 						id      : 'source',
+						default : "",
 						choices : this.pollResults.ndiSources
 					}
 				]
@@ -21,6 +22,7 @@ module.exports = {
 						type    : 'dropdown',
 						label   : 'Overlay PiP source',
 						id      : 'source',
+						default : "",
 						choices : this.pollResults.ndiSources
 					}
 				]
@@ -33,6 +35,7 @@ module.exports = {
 						type    : 'dropdown',
 						label   : 'Overlay alpha source',
 						id      : 'source',
+						default : "",
 						choices : this.pollResults.ndiSources
 					}
 				]

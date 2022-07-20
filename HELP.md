@@ -1,6 +1,6 @@
 # NewTek NDI Studio Monitor
 
-**Control for NDI Studio Monitor version > 4**
+**Control for NDI Studio Monitor versions 4 & 5**
 
 **Sources and presets are updated every 5 seconds**, if you don't see a source in the dropdown lists or presets just refresh the page.
 

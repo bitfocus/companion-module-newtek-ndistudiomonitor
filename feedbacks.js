@@ -10,6 +10,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
+					allowCustom: true,
 					choices : this.pollResults.ndiSources,
 					default : ''
 
@@ -47,6 +48,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
+					allowCustom: true,
 					choices : this.pollResults.ndiSources,
 					default : ''
 
@@ -83,6 +85,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
+					allowCustom: true,
 					choices : this.pollResults.ndiSources,
 					default : ''
 
@@ -119,6 +122,7 @@ module.exports = {
 					type    : 'dropdown',
 					label   : 'Video source',
 					id      : 'source',
+					allowCustom: true,
 					choices : this.pollResults.ndiSources,
 					default : ''
 

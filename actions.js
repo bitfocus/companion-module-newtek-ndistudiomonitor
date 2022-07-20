@@ -10,6 +10,7 @@ module.exports = {
 						label   : 'Video source',
 						id      : 'source',
 						default : "",
+						allowCustom: true,
 						choices : this.pollResults.ndiSources
 					}
 				]
@@ -23,6 +24,7 @@ module.exports = {
 						label   : 'Overlay PiP source',
 						id      : 'source',
 						default : "",
+						allowCustom: true,
 						choices : this.pollResults.ndiSources
 					}
 				]
@@ -36,6 +38,7 @@ module.exports = {
 						label   : 'Overlay alpha source',
 						id      : 'source',
 						default : "",
+						allowCustom: true,
 						choices : this.pollResults.ndiSources
 					}
 				]
